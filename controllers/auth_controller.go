@@ -74,13 +74,13 @@ func (auth *AuthController) Signup(c *gin.Context) {
 		log.Fatal(err)
 		return
 	}
-//
+/*
 	refresh := entity.RefreshSession{}
 	refresh.Refresh = "ertgyygfddfgfhzj2343657aehrmkdwagdrhq"
 	refresh.UserId = 1
 	refreshService := services.RefreshService{}
 	refreshService.Create(&refresh)
-//
+*/
 	user.Password = string(hash)
 	user.Name = info.Name
 	userservice := services.Userservice{}

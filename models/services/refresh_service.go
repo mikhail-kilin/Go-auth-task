@@ -12,9 +12,6 @@ import (
 type RefreshService struct{}
 
 func (refreshservice RefreshService) Create(refreshSession *(entity.RefreshSession)) error {
-	conn := db.GetConnection()
-	defer conn.Session.Close()
-
 	doc := mogo.NewDoc(entity.RefreshSession{}).(*(entity.RefreshSession))
 	err := doc.FindOne(bson.M{"refresh": refreshSession.Refresh}, doc)
 
@@ -28,4 +25,18 @@ func (refreshservice RefreshService) Create(refreshSession *(entity.RefreshSessi
 		return vErr
 	}
 	return err
+}
+
+func (refreshservice RefreshService) Create(refreshSession *(entity.RefreshSession)) error {
+	session_collection := db.GetConnection().DB.Collection("refresh_sessions")
+
+	ctx := context.Background()
+
+	result, err := session_collection.InsertOne(ctx, user)
+
+	if (err != nil || result == nil) {
+		return errors.New("Something is wrong")
+	}
+
+	return nil
 }

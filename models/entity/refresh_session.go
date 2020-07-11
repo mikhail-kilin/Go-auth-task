@@ -7,13 +7,16 @@ import (
 )
 
 type RefreshSession struct {
-	mogo.DocumentModel `bson:",inline" coll:"refresh_sessions"`
-	Refresh            string `idx:"{refresh},unique" json:"refresh" binding:"required"`
-	UserId             uint32 `json:"user_id" binding:"required"`
-	ExpiresAt          time.Time `bson:"expires_at"`
+	Refresh            string `bson:"refresh" json:"refresh"`
+	UserEmail          string `bson:"user_email" json:"user_email"`
+	ExpiresAt          time.Time `bson:"expires_at" json:"expires_at"`
 }
 
-
-func init() {
-	mogo.ModelRegistry.Register(RefreshSession{})
+func (obj *RefreshSession) New() *RefreshSession {
+	return &RefreshSession{
+		Refresh:     obj.Refresh,
+		UserEmail:      obj.UserEmail,
+		ExpiresAt:   obj.ExpiresAt,
+	}
 }
+

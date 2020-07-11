@@ -2,27 +2,39 @@ package db
 
 import (
 	"auth-task/helpers"
-	"log"
+    "context"
+    "log"
 
-	"github.com/goonode/mogo"
+    "go.mongodb.org/mongo-driver/mongo"
+    "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var mongoConnection *mogo.Connection = nil
+type MgClient struct {
+	DB      *mongo.Database
+	Client  *mongo.Client
+	Context context.Context
+}
 
-func GetConnection() *mogo.Connection {
+func (d *MgClient) Close() {
+	d.Client.Disconnect(d.Context)
+}
+
+var mongoConnection *MgClient = nil
+
+func GetConnection() *MgClient {
+	ctx := context.Background()
 	if mongoConnection == nil {
-		connectionString := helpers.EnvVar("DB_CONNECTION_STRING")
-		dbName := helpers.EnvVar("DB_NAME")
-		config := &mogo.Config{
-			ConnectionString: connectionString,
-			Database:         dbName,
-		}
-		mongoConnection, err := mogo.Connect(config)
+		client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://" + helpers.EnvVar("DB_CONNECTION_STRING")))
 		if err != nil {
 			log.Fatal(err)
-		} else {
-			return mongoConnection
 		}
+
+		err = client.Connect(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		mongoConnection = &MgClient{DB: client.Database(helpers.EnvVar("DB_NAME")), Client: client, Context: ctx}
 	}
 	return mongoConnection
 }
