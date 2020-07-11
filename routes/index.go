@@ -3,19 +3,19 @@ package routes
 import (
 	"auth-task/controllers"
 
-	//"auth-task/middlewares"
+	"auth-task/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
 
 func setAuthRoute(router *gin.Engine) {
 	authController := new(controllers.AuthController)
-	//router.POST("/login", authController.Login)
+	router.POST("/login", authController.Login)
 	router.POST("/signup", authController.Signup)
 
-	//authGroup := router.Group("/")
-	//authGroup.Use(middlewares.Authentication())
-	//authGroup.GET("/profile", authController.Profile)
+	authGroup := router.Group("/")
+	authGroup.Use(middlewares.Authentication())
+	authGroup.GET("/profile", authController.Profile)
 
 }
 

@@ -2,7 +2,6 @@
 package controllers
 
 import (
-	//"fmt"
 	"auth-task/models/entity"
 	"auth-task/models/services"
 	"log"
@@ -13,16 +12,18 @@ import (
 )
 
 type AuthController struct{}
-/*
+
 func (auth *AuthController) Login(c *gin.Context) {
 
 	var loginInfo entity.User
+
 	if err := c.ShouldBindJSON(&loginInfo); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	userservice := service.Userservice{}
-	user, errf := userservice.Find(&loginInfo)
+
+	userservice := services.Userservice{}
+	user, errf := userservice.FindUser(&loginInfo)
 	if errf != nil {
 		c.JSON(401, gin.H{"error": "Not found"})
 		return
@@ -34,13 +35,12 @@ func (auth *AuthController) Login(c *gin.Context) {
 		return
 	}
 
-	fmt.Println("user email is ", user.Email)
 	token, err := user.GetJwtToken()
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
-	//-------
+
 	c.JSON(200, gin.H{
 		"token": token,
 	})
@@ -50,11 +50,11 @@ func (auth *AuthController) Profile(c *gin.Context) {
 	user := c.MustGet("user").(*(entity.User))
 
 	c.JSON(200, gin.H{
-		"user_name": user.Name,
-		"email":     user.Email,
+		"user_name":  user.Name,
+		"email":      user.Email,
 	})
 }
-*/
+
 func (auth *AuthController) Signup(c *gin.Context) {
 
 	type signupInfo struct {
@@ -74,13 +74,7 @@ func (auth *AuthController) Signup(c *gin.Context) {
 		log.Fatal(err)
 		return
 	}
-/*
-	refresh := entity.RefreshSession{}
-	refresh.Refresh = "ertgyygfddfgfhzj2343657aehrmkdwagdrhq"
-	refresh.UserId = 1
-	refreshService := services.RefreshService{}
-	refreshService.Create(&refresh)
-*/
+
 	user.Password = string(hash)
 	user.Name = info.Name
 	userservice := services.Userservice{}
