@@ -41,8 +41,19 @@ func (auth *AuthController) Login(c *gin.Context) {
 		return
 	}
 
+	refresh_service := services.RefreshService{}
+	refrsh_token, err := refresh_service.Generate(user, token)
+
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(200, gin.H{
-		"token": token,
+		"access-token": token,
+		"access-lifetime": "10 minutes",
+		"refresh-token" : refrsh_token,
+		"refresh-token-lifetime" : "7 days",
 	})
 }
 

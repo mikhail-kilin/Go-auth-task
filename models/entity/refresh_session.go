@@ -13,7 +13,7 @@ type RefreshSession struct {
 func (obj *RefreshSession) New() *RefreshSession {
 	return &RefreshSession{
 		Refresh:     obj.Refresh,
-		UserEmail:      obj.UserEmail,
+		UserEmail:   obj.UserEmail,
 		CreatedAt:   obj.CreatedAt,
 	}
 }
