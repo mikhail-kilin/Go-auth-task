@@ -15,8 +15,9 @@ type MgClient struct {
 	Context context.Context
 }
 
-func (d *MgClient) Close() {
-	d.Client.Disconnect(d.Context)
+func CloseConection() {
+	mongoConnection.Client.Disconnect(d.Context)
+	mongoConnection = nil
 }
 
 var mongoConnection *MgClient = nil

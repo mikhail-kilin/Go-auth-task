@@ -23,6 +23,8 @@ type Tokens struct{
 }
 
 func (userservice Userservice) Create(user *(entity.User)) error {
+	defer db.CloseConection()
+
 	users_collection := db.GetConnection().DB.Collection("users")
 
 	res, err := userservice.FindUser(user)
@@ -59,6 +61,8 @@ func (userservice Userservice) FindUser(info *entity.User) (*entity.User, error)
 }
 
 func (userservice Userservice) GetTokens(user *entity.User) (Tokens, error) {
+	defer db.CloseConection()
+
 	current_time := time.Now()
 
 	refresh_service := RefreshService{}
@@ -82,6 +86,8 @@ func (userservice Userservice) GetTokens(user *entity.User) (Tokens, error) {
 }
 
 func (userservice Userservice) ReGenerateToken(access_token string) (Tokens, error) {
+	defer db.CloseConection()
+
 	secretKey := helpers.EnvVar("SECRET")
 
 	token, err := jwt.Parse(access_token, func(token *jwt.Token) (interface{}, error) {
