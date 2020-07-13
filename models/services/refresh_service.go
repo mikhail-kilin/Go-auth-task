@@ -120,3 +120,39 @@ func (refreshservice RefreshService) DeleteSessionByAccessToken(access_token str
 		return errors.New("Something is wrong")
 	}
 }
+
+func (refreshservice RefreshService) DeleteManySessionsByUserEmail(email string) error{
+	session_collection := db.GetConnection().DB.Collection("refresh_sessions")
+
+	ctx := context.Background()
+
+	result, err := session_collection.DeleteMany(ctx, bson.M{"user_email": email})
+
+	if (err != nil || result == nil) {
+		return errors.New("Something is wrong")
+	}
+
+	return nil
+}
+
+func (refreshservice RefreshService) DeleteAllSessionsOfUser(access_token string) (error) {
+	secretKey := helpers.EnvVar("SECRET")
+
+	token, err := jwt.Parse(access_token, func(token *jwt.Token) (interface{}, error) {
+		return []byte(secretKey), nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		email := claims["email"].(string)
+
+		refreshservice.DeleteManySessionsByUserEmail(email)
+
+		return nil
+	} else {
+		return errors.New("Something is wrong")
+	}
+}
