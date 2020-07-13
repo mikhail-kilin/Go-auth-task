@@ -13,6 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/bson"
+	"github.com/dgrijalva/jwt-go"
 )
 
 type RefreshService struct{}
@@ -96,4 +97,26 @@ func (refreshservice RefreshService) DeleteSession(id string) (error) {
 		bson.M{"_id": result},
 	)
 	return nil
+}
+
+func (refreshservice RefreshService) DeleteSessionByAccessToken(access_token string) (error) {
+	secretKey := helpers.EnvVar("SECRET")
+
+	token, err := jwt.Parse(access_token, func(token *jwt.Token) (interface{}, error) {
+		return []byte(secretKey), nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		session_id := claims["session_id"].(string)
+
+		refreshservice.DeleteSession(session_id)
+
+		return nil
+	} else {
+		return errors.New("Something is wrong")
+	}
 }

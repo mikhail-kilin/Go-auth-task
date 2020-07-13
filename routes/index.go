@@ -20,7 +20,7 @@ func setAuthRoute(router *gin.Engine) {
 	refreshGroup := router.Group("/")
 	refreshGroup.Use(middlewares.AuthRefreshToken())
 	refreshGroup.POST("/refresh", authController.Refresh)
-	refreshGroup.POST("/refresh/delete", authController.Profile)
+	refreshGroup.POST("/refresh/delete", authController.DeleteRefreshToken)
 	refreshGroup.POST("/refresh/all/delete", authController.Profile)
 
 }

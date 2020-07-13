@@ -73,6 +73,17 @@ func (auth *AuthController) Refresh(c *gin.Context) {
 	})
 }
 
+func (auth *AuthController) DeleteRefreshToken(c *gin.Context) {
+	tokenString := c.Request.Header.Get("Access-token")
+	refresh_service := services.RefreshService{}
+	err := refresh_service.DeleteSessionByAccessToken(tokenString)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+	} else {
+		c.JSON(200, gin.H{"result": "ok"})
+	}
+}
+
 func (auth *AuthController) Profile(c *gin.Context) {
 	user := c.MustGet("user").(*(entity.User))
 
