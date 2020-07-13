@@ -80,3 +80,32 @@ func (userservice Userservice) GetTokens(user *entity.User) (Tokens, error) {
 	tokenString, err := token.SignedString([]byte(secretKey))
 	return Tokens{tokenString, refresh}, err
 }
+
+func (userservice Userservice) ReGenerateToken(access_token string) (Tokens, error) {
+	secretKey := helpers.EnvVar("SECRET")
+
+	token, err := jwt.Parse(access_token, func(token *jwt.Token) (interface{}, error) {
+		return []byte(secretKey), nil
+	})
+
+	if err != nil {
+		return Tokens{}, err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		session_id := claims["session_id"].(string)
+		refresh_service := RefreshService{}
+
+		refresh_service.DeleteSession(session_id)
+
+		email := claims["email"].(string)
+		user, err := userservice.FindUser(&entity.User {Email: email})
+		if err != nil {
+			return Tokens{}, err
+		}
+
+		return userservice.GetTokens(user)
+	} else {
+		return Tokens{}, errors.New("Something is wrong")
+	}
+}

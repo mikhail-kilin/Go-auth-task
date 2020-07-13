@@ -35,11 +35,30 @@ func (auth *AuthController) Login(c *gin.Context) {
 		return
 	}
 
-	tokens, err := userservice.GetTokens(user)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
+
+	tokens, err := userservice.GetTokens(user)
+
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"access-token": tokens.Access_token,
+		"access-lifetime": "10 minutes",
+		"refresh-token" : tokens.Refresh_token,
+		"refresh-token-lifetime" : "7 days",
+	})
+}
+
+func (auth *AuthController) Refresh(c *gin.Context) {
+	tokenString := c.Request.Header.Get("Access-token")
+	user_service := services.Userservice{}
+	tokens, err := user_service.ReGenerateToken(tokenString)
 
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
