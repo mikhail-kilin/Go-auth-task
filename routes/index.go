@@ -17,6 +17,12 @@ func setAuthRoute(router *gin.Engine) {
 	authGroup.Use(middlewares.Authentication())
 	authGroup.GET("/profile", authController.Profile)
 
+	refreshGroup := router.Group("/")
+	refreshGroup.Use(middlewares.AuthRefreshToken())
+	refreshGroup.POST("/refresh", authController.Profile)
+	refreshGroup.POST("/refresh/delete", authController.Profile)
+	refreshGroup.POST("/refresh/all/delete", authController.Profile)
+
 }
 
 func InitRoute() *gin.Engine {

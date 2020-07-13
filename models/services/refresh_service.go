@@ -10,11 +10,14 @@ import (
 	"auth-task/helpers"
 	"time"
 	"context"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type RefreshService struct{}
 
-func (refreshservice RefreshService) Create(refreshSession *(entity.RefreshSession)) error {
+func (refreshservice RefreshService) Create(refreshSession *(entity.RefreshSession)) (string, error) {
 	session_collection := db.GetConnection().DB.Collection("refresh_sessions")
 
 	ctx := context.Background()
@@ -22,31 +25,75 @@ func (refreshservice RefreshService) Create(refreshSession *(entity.RefreshSessi
 
 	result, err := session_collection.InsertOne(ctx, refreshSession)
 
-	if (err != nil || result == nil) {
-		return errors.New("Something is wrong")
+	if (err != nil) {
+		return "Error", errors.New("Something is wrong")
 	}
 
-	return nil
+	return result.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
-func (refreshservice RefreshService) Generate(user *(entity.User), jwt string) (string, error) {
-	secret := helpers.EnvVar("SECRET")
 
-	h512 := sha512.New()
-	token := base64.StdEncoding.EncodeToString(h512.Sum([]byte(jwt + secret)))
+func (refreshservice RefreshService) Generate(user *(entity.User), token_time time.Time) (string, string, error) {
+	token := refreshservice.GetRefreshToken(user, token_time.String())
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(token), bcrypt.MinCost)
 
 	if (err != nil) {
-		return "error", errors.New("Something is wrong")
+		return "error", "error", errors.New("Something is wrong")
 	}
 
 	session := entity.RefreshSession{string(hash), user.Email, time.Now()}
-	errc := refreshservice.Create(&session)
+	sesssion_id, errc := refreshservice.Create(&session)
 	if (errc != nil) {
-		return "error", errors.New("Something is wrong")
+		return "error", "error", errors.New("Something is wrong")
 	}
 
 
-	return token, nil
+	return sesssion_id, token, nil
+}
+
+func (refreshservice RefreshService) GetRefreshToken(user *(entity.User), token_time string) (string) {
+	secret := helpers.EnvVar("SECRET")
+
+	h512 := sha512.New()
+	token := base64.StdEncoding.EncodeToString(h512.Sum([]byte(user.Email + user.Name + token_time + secret)))
+
+	return token
+}
+
+func (refreshservice RefreshService) FindSession(id string) (*entity.RefreshSession, error) {
+	var session entity.RefreshSession
+
+	result, errh := primitive.ObjectIDFromHex(id)
+
+	if (errh != nil) {
+		return nil, errors.New("Something is wrong")
+	}
+
+	err := db.GetConnection().DB.Collection("refresh_sessions").FindOne(
+		context.Background(),
+		bson.M{"_id": result},
+	).Decode(&session)
+
+	if err != nil {
+
+		if err == mongo.ErrNoDocuments {
+			return nil, err
+		}
+	}
+	return &session, nil
+}
+
+func (refreshservice RefreshService) DeleteSession(id string) (error) {
+	result, errh := primitive.ObjectIDFromHex(id)
+
+	if (errh != nil) {
+		return errors.New("Something is wrong")
+	}
+
+	db.GetConnection().DB.Collection("refresh_sessions").DeleteOne(
+		context.Background(),
+		bson.M{"_id": result},
+	)
+	return nil
 }

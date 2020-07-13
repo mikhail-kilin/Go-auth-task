@@ -35,14 +35,11 @@ func (auth *AuthController) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := user.GetJwtToken()
+	tokens, err := userservice.GetTokens(user)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
-
-	refresh_service := services.RefreshService{}
-	refrsh_token, err := refresh_service.Generate(user, token)
 
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
@@ -50,9 +47,9 @@ func (auth *AuthController) Login(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{
-		"access-token": token,
+		"access-token": tokens.Access_token,
 		"access-lifetime": "10 minutes",
-		"refresh-token" : refrsh_token,
+		"refresh-token" : tokens.Refresh_token,
 		"refresh-token-lifetime" : "7 days",
 	})
 }

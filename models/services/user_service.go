@@ -5,12 +5,22 @@ import (
 	"errors"
 	"auth-task/config/db"
 	"auth-task/models/entity"
+	"auth-task/helpers"
+
+	"github.com/dgrijalva/jwt-go"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+
+	"time"
 )
 
 type Userservice struct{}
+
+type Tokens struct{
+	Access_token   string
+	Refresh_token  string
+}
 
 func (userservice Userservice) Create(user *(entity.User)) error {
 	users_collection := db.GetConnection().DB.Collection("users")
@@ -46,4 +56,27 @@ func (userservice Userservice) FindUser(info *entity.User) (*entity.User, error)
 		}
 	}
 	return &user, nil
+}
+
+func (userservice Userservice) GetTokens(user *entity.User) (Tokens, error) {
+	current_time := time.Now()
+
+	refresh_service := RefreshService{}
+	session_id, refresh, errs := refresh_service.Generate(user, current_time)
+
+	if errs != nil {
+		return Tokens{}, errs
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
+		"email": string(user.Email),
+		"name": string(user.Name),
+		"created_at": current_time,
+		"session_id": session_id,
+	})
+
+	secretKey := helpers.EnvVar("SECRET")
+
+	tokenString, err := token.SignedString([]byte(secretKey))
+	return Tokens{tokenString, refresh}, err
 }
