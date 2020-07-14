@@ -9,6 +9,8 @@ require (
 	github.com/go-bongo/go-dotaccess v0.0.0-20190924013105-74ea4f4ca4eb // indirect
 	github.com/goonode/mogo v0.0.0-20181028112152-10c38e9be609
 	github.com/joho/godotenv v1.3.0
+	github.com/kr/fs v0.1.0 // indirect
+	github.com/kr/godep v0.0.0-20180126220526-ce0bfadeb516 // indirect
 	github.com/oleiade/reflections v1.0.0 // indirect
 	github.com/stretchr/testify v1.4.0
 	go.mongodb.org/mongo-driver v1.3.5

@@ -1,1 +1,1 @@
-web: bin/auth-task
+web: bin/auth-task -p=$PORT
