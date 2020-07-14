@@ -40,7 +40,7 @@ func (userService UserService) Create(user *(entity.User)) error {
 	result, err := usersCollection.InsertOne(ctx, user)
 
 	if (err != nil || result == nil) {
-		return errors.New("Something is wrong")
+		return err
 	}
 
 	return nil
@@ -54,10 +54,7 @@ func (userService UserService) FindUser(info *entity.User) (*entity.User, error)
 	).Decode(&user)
 
 	if err != nil {
-
-		if err == mongo.ErrNoDocuments {
-			return nil, err
-		}
+		return nil, err
 	}
 	return &user, nil
 }
