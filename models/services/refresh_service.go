@@ -100,8 +100,6 @@ func (refreshservice RefreshService) DeleteSession(id string) (error) {
 }
 
 func (refreshservice RefreshService) DeleteSessionByAccessToken(accessToken string) (error) {
-	defer db.CloseConection()
-
 	secretKey := helpers.EnvVar("SECRET")
 
 	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
@@ -138,8 +136,6 @@ func (refreshservice RefreshService) DeleteManySessionsByUserEmail(email string)
 }
 
 func (refreshservice RefreshService) DeleteAllSessionsOfUser(accessToken string) (error) {
-	defer db.CloseConection()
-
 	secretKey := helpers.EnvVar("SECRET")
 
 	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {

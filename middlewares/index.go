@@ -1,8 +1,6 @@
 package middlewares
 
 import (
-	"fmt"
-
 	"auth-task/models/entity"
 	"auth-task/models/services"
 	"auth-task/helpers"
@@ -22,7 +20,6 @@ func Authentication() gin.HandlerFunc {
 			})
 			return
 		}
-		fmt.Println("tokenString is ", tokenString)
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			secretKey := helpers.EnvVar("SECRET")
 			return []byte(secretKey), nil
@@ -54,7 +51,6 @@ func Authentication() gin.HandlerFunc {
 			}
 
 			email := claims["email"].(string)
-			fmt.Println("email is ", email)
 			userService := services.UserService{}
 			user, err := userService.FindUser(&entity.User {Email: email})
 			if err != nil {
@@ -93,7 +89,6 @@ func AuthRefreshToken() gin.HandlerFunc {
 		}
 
 		secretKey := helpers.EnvVar("SECRET")
-		fmt.Println("tokenString is ", tokenString)
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			return []byte(secretKey), nil
@@ -108,7 +103,6 @@ func AuthRefreshToken() gin.HandlerFunc {
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 			email := claims["email"].(string)
-			fmt.Println("email is ", email)
 			userService := services.UserService{}
 			user, err := userService.FindUser(&entity.User {Email: email})
 			if err != nil {

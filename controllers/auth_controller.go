@@ -4,6 +4,7 @@ package controllers
 import (
 	"auth-task/models/entity"
 	"auth-task/models/services"
+	"auth-task/config/db"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -14,7 +15,7 @@ import (
 type AuthController struct{}
 
 func (auth *AuthController) Login(c *gin.Context) {
-
+	defer db.CloseConection()
 	var loginInfo entity.User
 
 	if err := c.ShouldBindJSON(&loginInfo); err != nil {
@@ -56,6 +57,7 @@ func (auth *AuthController) Login(c *gin.Context) {
 }
 
 func (auth *AuthController) Refresh(c *gin.Context) {
+	defer db.CloseConection()
 	tokenString := c.Request.Header.Get("Access-token")
 	userService := services.UserService{}
 	tokens, err := userService.ReGenerateToken(tokenString)
@@ -74,6 +76,7 @@ func (auth *AuthController) Refresh(c *gin.Context) {
 }
 
 func (auth *AuthController) DeleteRefreshToken(c *gin.Context) {
+	defer db.CloseConection()
 	tokenString := c.Request.Header.Get("Access-token")
 	refreshService := services.RefreshService{}
 	err := refreshService.DeleteSessionByAccessToken(tokenString)
@@ -85,6 +88,7 @@ func (auth *AuthController) DeleteRefreshToken(c *gin.Context) {
 }
 
 func (auth *AuthController) DeleteAllRefreshTokennOfUser(c *gin.Context) {
+	defer db.CloseConection()
 	tokenString := c.Request.Header.Get("Access-token")
 	refreshService := services.RefreshService{}
 	err := refreshService.DeleteAllSessionsOfUser(tokenString)
@@ -96,6 +100,7 @@ func (auth *AuthController) DeleteAllRefreshTokennOfUser(c *gin.Context) {
 }
 
 func (auth *AuthController) Profile(c *gin.Context) {
+	defer db.CloseConection()
 	user := c.MustGet("user").(*(entity.User))
 
 	c.JSON(200, gin.H{
@@ -105,6 +110,7 @@ func (auth *AuthController) Profile(c *gin.Context) {
 }
 
 func (auth *AuthController) Signup(c *gin.Context) {
+	defer db.CloseConection()
 
 	type signupInfo struct {
 		Email    string `json:"email" binding:"required"`
