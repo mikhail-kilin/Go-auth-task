@@ -1,5 +1,6 @@
 # Go-auth-task
-##Deployed to
+
+## Deployed to
 https://golang-auth-task.herokuapp.com/
 
 ## Setup
@@ -29,7 +30,7 @@ POST /login
 
 ### Profile
 GET /profile
-Headers: Access-token, Refresh-token
+Headers: Access-token
 
 ### Refresh
 POST /refresh
