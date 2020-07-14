@@ -22,7 +22,6 @@ func setAuthRoute(router *gin.Engine) {
 	refreshGroup.POST("/refresh", authController.Refresh)
 	refreshGroup.POST("/refresh/delete", authController.DeleteRefreshToken)
 	refreshGroup.POST("/refresh/all/delete", authController.DeleteAllRefreshTokennOfUser)
-
 }
 
 func InitRoute() *gin.Engine {

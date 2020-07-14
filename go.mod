@@ -10,6 +10,7 @@ require (
 	github.com/goonode/mogo v0.0.0-20181028112152-10c38e9be609
 	github.com/joho/godotenv v1.3.0
 	github.com/oleiade/reflections v1.0.0 // indirect
+	github.com/stretchr/testify v1.4.0
 	go.mongodb.org/mongo-driver v1.3.5
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
 	labix.org/v2/mgo v0.0.0-20140701140051-000000000287

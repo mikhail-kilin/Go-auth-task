@@ -15,11 +15,8 @@ type MgClient struct {
 	Context context.Context
 }
 
-func CloseConection() {
-	if mongoConnection != nil {
-		mongoConnection.Client.Disconnect(mongoConnection.Context)
-		mongoConnection = nil
-	}
+func ClearDb() {
+	GetConnection().DB.Drop(mongoConnection.Context)
 }
 
 var mongoConnection *MgClient = nil
@@ -37,7 +34,9 @@ func GetConnection() *MgClient {
 			log.Fatal(err)
 		}
 
-		mongoConnection = &MgClient{DB: client.Database(helpers.EnvVar("DB_NAME")), Client: client, Context: ctx}
+		dbName := helpers.EnvVar("DB_NAME")
+
+		mongoConnection = &MgClient{DB: client.Database(dbName), Client: client, Context: ctx}
 	}
 	return mongoConnection
 }
