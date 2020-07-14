@@ -19,12 +19,12 @@ import (
 type RefreshService struct{}
 
 func (refreshservice RefreshService) Create(refreshSession *(entity.RefreshSession)) (string, error) {
-	session_collection := db.GetConnection().DB.Collection("refresh_sessions")
+	sessionCollection := db.GetConnection().DB.Collection("refresh_sessions")
 
 	ctx := context.Background()
 	refreshSession.CreatedAt = time.Now()
 
-	result, err := session_collection.InsertOne(ctx, refreshSession)
+	result, err := sessionCollection.InsertOne(ctx, refreshSession)
 
 	if (err != nil) {
 		return "Error", errors.New("Something is wrong")
@@ -34,8 +34,8 @@ func (refreshservice RefreshService) Create(refreshSession *(entity.RefreshSessi
 }
 
 
-func (refreshservice RefreshService) Generate(user *(entity.User), token_time time.Time) (string, string, error) {
-	token := refreshservice.GetRefreshToken(user, token_time.String())
+func (refreshservice RefreshService) Generate(user *(entity.User), tokenTime time.Time) (string, string, error) {
+	token := refreshservice.GetRefreshToken(user, tokenTime.String())
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(token), bcrypt.MinCost)
 
@@ -44,20 +44,20 @@ func (refreshservice RefreshService) Generate(user *(entity.User), token_time ti
 	}
 
 	session := entity.RefreshSession{string(hash), user.Email, time.Now()}
-	sesssion_id, errc := refreshservice.Create(&session)
+	sesssionId, errc := refreshservice.Create(&session)
 	if (errc != nil) {
 		return "error", "error", errors.New("Something is wrong")
 	}
 
 
-	return sesssion_id, token, nil
+	return sesssionId, token, nil
 }
 
-func (refreshservice RefreshService) GetRefreshToken(user *(entity.User), token_time string) (string) {
+func (refreshservice RefreshService) GetRefreshToken(user *(entity.User), tokenTime string) (string) {
 	secret := helpers.EnvVar("SECRET")
 
 	h512 := sha512.New()
-	token := base64.StdEncoding.EncodeToString(h512.Sum([]byte(user.Email + user.Name + token_time + secret)))
+	token := base64.StdEncoding.EncodeToString(h512.Sum([]byte(user.Email + user.Name + tokenTime + secret)))
 
 	return token
 }
@@ -99,12 +99,12 @@ func (refreshservice RefreshService) DeleteSession(id string) (error) {
 	return nil
 }
 
-func (refreshservice RefreshService) DeleteSessionByAccessToken(access_token string) (error) {
+func (refreshservice RefreshService) DeleteSessionByAccessToken(accessToken string) (error) {
 	defer db.CloseConection()
 
 	secretKey := helpers.EnvVar("SECRET")
 
-	token, err := jwt.Parse(access_token, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secretKey), nil
 	})
 
@@ -113,9 +113,9 @@ func (refreshservice RefreshService) DeleteSessionByAccessToken(access_token str
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		session_id := claims["session_id"].(string)
+		sessionId := claims["session_id"].(string)
 
-		refreshservice.DeleteSession(session_id)
+		refreshservice.DeleteSession(sessionId)
 
 		return nil
 	} else {
@@ -124,11 +124,11 @@ func (refreshservice RefreshService) DeleteSessionByAccessToken(access_token str
 }
 
 func (refreshservice RefreshService) DeleteManySessionsByUserEmail(email string) error{
-	session_collection := db.GetConnection().DB.Collection("refresh_sessions")
+	sessionCollection := db.GetConnection().DB.Collection("refresh_sessions")
 
 	ctx := context.Background()
 
-	result, err := session_collection.DeleteMany(ctx, bson.M{"user_email": email})
+	result, err := sessionCollection.DeleteMany(ctx, bson.M{"user_email": email})
 
 	if (err != nil || result == nil) {
 		return errors.New("Something is wrong")
@@ -137,12 +137,12 @@ func (refreshservice RefreshService) DeleteManySessionsByUserEmail(email string)
 	return nil
 }
 
-func (refreshservice RefreshService) DeleteAllSessionsOfUser(access_token string) (error) {
+func (refreshservice RefreshService) DeleteAllSessionsOfUser(accessToken string) (error) {
 	defer db.CloseConection()
 
 	secretKey := helpers.EnvVar("SECRET")
 
-	token, err := jwt.Parse(access_token, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secretKey), nil
 	})
 

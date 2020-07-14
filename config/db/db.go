@@ -16,8 +16,10 @@ type MgClient struct {
 }
 
 func CloseConection() {
-	mongoConnection.Client.Disconnect(d.Context)
-	mongoConnection = nil
+	if mongoConnection != nil {
+		mongoConnection.Client.Disconnect(mongoConnection.Context)
+		mongoConnection = nil
+	}
 }
 
 var mongoConnection *MgClient = nil

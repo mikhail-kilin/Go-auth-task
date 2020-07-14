@@ -36,7 +36,7 @@ func Authentication() gin.HandlerFunc {
 		}
 		
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			token_time, errt := time.Parse(time.RFC3339, claims["created_at"].(string))
+			tokenTime, errt := time.Parse(time.RFC3339, claims["created_at"].(string))
 			if errt != nil {
 				c.AbortWithStatusJSON(402, gin.H{
 					"error": "Invalid Token",
@@ -44,9 +44,9 @@ func Authentication() gin.HandlerFunc {
 				return
 			}
 
-			token_time = token_time.Add(10 * time.Minute)
-			current_time := time.Now()
-			if current_time.After(token_time) {
+			tokenTime = tokenTime.Add(10 * time.Minute)
+			currentTime := time.Now()
+			if currentTime.After(tokenTime) {
 				c.AbortWithStatusJSON(401, gin.H{
 					"error": "Token is outdated",
 				})
@@ -55,8 +55,8 @@ func Authentication() gin.HandlerFunc {
 
 			email := claims["email"].(string)
 			fmt.Println("email is ", email)
-			userservice := services.Userservice{}
-			user, err := userservice.FindUser(&entity.User {Email: email})
+			userService := services.UserService{}
+			user, err := userService.FindUser(&entity.User {Email: email})
 			if err != nil {
 				c.AbortWithStatusJSON(402, gin.H{
 					"error": "User not found",
@@ -109,8 +109,8 @@ func AuthRefreshToken() gin.HandlerFunc {
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 			email := claims["email"].(string)
 			fmt.Println("email is ", email)
-			userservice := services.Userservice{}
-			user, err := userservice.FindUser(&entity.User {Email: email})
+			userService := services.UserService{}
+			user, err := userService.FindUser(&entity.User {Email: email})
 			if err != nil {
 				c.AbortWithStatusJSON(402, gin.H{
 					"error": "User not found",
@@ -119,10 +119,10 @@ func AuthRefreshToken() gin.HandlerFunc {
 			}
 			c.Set("user", user)
 
-			session_id := claims["session_id"].(string)
+			sessionId := claims["session_id"].(string)
 
 			refreshService := services.RefreshService{}
-			session, errs := refreshService.FindSession(session_id)
+			session, errs := refreshService.FindSession(sessionId)
 
 			if errs != nil {
 				c.AbortWithStatusJSON(401, gin.H{
@@ -137,10 +137,10 @@ func AuthRefreshToken() gin.HandlerFunc {
 				return
 			}
 
-			refresh_token_time := session.CreatedAt.Add(7 * 24 * time.Hour)
-			current_time := time.Now()
-			if current_time.After(refresh_token_time) {
-				refreshService.DeleteSession(session_id)
+			refreshTokenTime := session.CreatedAt.Add(7 * 24 * time.Hour)
+			currentTime := time.Now()
+			if currentTime.After(refreshTokenTime) {
+				refreshService.DeleteSession(sessionId)
 				c.AbortWithStatusJSON(401, gin.H{
 					"error": "Refresh Token is outdated",
 				})

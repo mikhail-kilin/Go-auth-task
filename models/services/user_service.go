@@ -15,19 +15,19 @@ import (
 	"time"
 )
 
-type Userservice struct{}
+type UserService struct{}
 
 type Tokens struct{
-	Access_token   string
-	Refresh_token  string
+	AccessToken   string
+	RefreshToken  string
 }
 
-func (userservice Userservice) Create(user *(entity.User)) error {
+func (userService UserService) Create(user *(entity.User)) error {
 	defer db.CloseConection()
 
-	users_collection := db.GetConnection().DB.Collection("users")
+	usersCollection := db.GetConnection().DB.Collection("users")
 
-	res, err := userservice.FindUser(user)
+	res, err := userService.FindUser(user)
 
 	if (res != nil ) {
 		return errors.New("Already Exist")
@@ -35,7 +35,7 @@ func (userservice Userservice) Create(user *(entity.User)) error {
 
 	ctx := context.Background()
 
-	result, err := users_collection.InsertOne(ctx, user)
+	result, err := usersCollection.InsertOne(ctx, user)
 
 	if (err != nil || result == nil) {
 		return errors.New("Something is wrong")
@@ -44,7 +44,7 @@ func (userservice Userservice) Create(user *(entity.User)) error {
 	return nil
 }
 
-func (userservice Userservice) FindUser(info *entity.User) (*entity.User, error) {
+func (userService UserService) FindUser(info *entity.User) (*entity.User, error) {
 	var user entity.User
 	err := db.GetConnection().DB.Collection("users").FindOne(
 		context.Background(),
@@ -60,13 +60,11 @@ func (userservice Userservice) FindUser(info *entity.User) (*entity.User, error)
 	return &user, nil
 }
 
-func (userservice Userservice) GetTokens(user *entity.User) (Tokens, error) {
-	defer db.CloseConection()
+func (userService UserService) GetTokens(user *entity.User) (Tokens, error) {
+	currentTime := time.Now()
 
-	current_time := time.Now()
-
-	refresh_service := RefreshService{}
-	session_id, refresh, errs := refresh_service.Generate(user, current_time)
+	refreshService := RefreshService{}
+	sessionId, refresh, errs := refreshService.Generate(user, currentTime)
 
 	if errs != nil {
 		return Tokens{}, errs
@@ -75,8 +73,8 @@ func (userservice Userservice) GetTokens(user *entity.User) (Tokens, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
 		"email": string(user.Email),
 		"name": string(user.Name),
-		"created_at": current_time,
-		"session_id": session_id,
+		"created_at": currentTime,
+		"session_id": sessionId,
 	})
 
 	secretKey := helpers.EnvVar("SECRET")
@@ -85,12 +83,12 @@ func (userservice Userservice) GetTokens(user *entity.User) (Tokens, error) {
 	return Tokens{tokenString, refresh}, err
 }
 
-func (userservice Userservice) ReGenerateToken(access_token string) (Tokens, error) {
+func (userService UserService) ReGenerateToken(accessToken string) (Tokens, error) {
 	defer db.CloseConection()
 
 	secretKey := helpers.EnvVar("SECRET")
 
-	token, err := jwt.Parse(access_token, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secretKey), nil
 	})
 
@@ -99,18 +97,18 @@ func (userservice Userservice) ReGenerateToken(access_token string) (Tokens, err
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		session_id := claims["session_id"].(string)
-		refresh_service := RefreshService{}
+		sessionId := claims["session_id"].(string)
+		refreshService := RefreshService{}
 
-		refresh_service.DeleteSession(session_id)
+		refreshService.DeleteSession(sessionId)
 
 		email := claims["email"].(string)
-		user, err := userservice.FindUser(&entity.User {Email: email})
+		user, err := userService.FindUser(&entity.User {Email: email})
 		if err != nil {
 			return Tokens{}, err
 		}
 
-		return userservice.GetTokens(user)
+		return userService.GetTokens(user)
 	} else {
 		return Tokens{}, errors.New("Something is wrong")
 	}

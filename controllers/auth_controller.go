@@ -22,8 +22,8 @@ func (auth *AuthController) Login(c *gin.Context) {
 		return
 	}
 
-	userservice := services.Userservice{}
-	user, errf := userservice.FindUser(&loginInfo)
+	userService := services.UserService{}
+	user, errf := userService.FindUser(&loginInfo)
 	if errf != nil {
 		c.JSON(401, gin.H{"error": "Not found"})
 		return
@@ -40,7 +40,7 @@ func (auth *AuthController) Login(c *gin.Context) {
 		return
 	}
 
-	tokens, err := userservice.GetTokens(user)
+	tokens, err := userService.GetTokens(user)
 
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
@@ -48,17 +48,17 @@ func (auth *AuthController) Login(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{
-		"access-token": tokens.Access_token,
+		"access-token": tokens.AccessToken,
 		"access-lifetime": "10 minutes",
-		"refresh-token" : tokens.Refresh_token,
+		"refresh-token" : tokens.RefreshToken,
 		"refresh-token-lifetime" : "7 days",
 	})
 }
 
 func (auth *AuthController) Refresh(c *gin.Context) {
 	tokenString := c.Request.Header.Get("Access-token")
-	user_service := services.Userservice{}
-	tokens, err := user_service.ReGenerateToken(tokenString)
+	userService := services.UserService{}
+	tokens, err := userService.ReGenerateToken(tokenString)
 
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
@@ -66,17 +66,17 @@ func (auth *AuthController) Refresh(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{
-		"access-token": tokens.Access_token,
+		"access-token": tokens.AccessToken,
 		"access-lifetime": "10 minutes",
-		"refresh-token" : tokens.Refresh_token,
+		"refresh-token" : tokens.RefreshToken,
 		"refresh-token-lifetime" : "7 days",
 	})
 }
 
 func (auth *AuthController) DeleteRefreshToken(c *gin.Context) {
 	tokenString := c.Request.Header.Get("Access-token")
-	refresh_service := services.RefreshService{}
-	err := refresh_service.DeleteSessionByAccessToken(tokenString)
+	refreshService := services.RefreshService{}
+	err := refreshService.DeleteSessionByAccessToken(tokenString)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 	} else {
@@ -86,8 +86,8 @@ func (auth *AuthController) DeleteRefreshToken(c *gin.Context) {
 
 func (auth *AuthController) DeleteAllRefreshTokennOfUser(c *gin.Context) {
 	tokenString := c.Request.Header.Get("Access-token")
-	refresh_service := services.RefreshService{}
-	err := refresh_service.DeleteAllSessionsOfUser(tokenString)
+	refreshService := services.RefreshService{}
+	err := refreshService.DeleteAllSessionsOfUser(tokenString)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 	} else {
@@ -126,8 +126,8 @@ func (auth *AuthController) Signup(c *gin.Context) {
 
 	user.Password = string(hash)
 	user.Name = info.Name
-	userservice := services.Userservice{}
-	err = userservice.Create(&user)
+	userService := services.UserService{}
+	err = userService.Create(&user)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 	} else {
