@@ -1,4 +1,6 @@
 # Go-auth-task
+##Deployed to
+https://golang-auth-task.herokuapp.com/
 
 ## Setup
 1) Clone this repository
