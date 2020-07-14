@@ -149,9 +149,9 @@ func (refreshservice RefreshService) DeleteAllSessionsOfUser(accessToken string)
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		email := claims["email"].(string)
 
-		refreshservice.DeleteManySessionsByUserEmail(email)
+		err = refreshservice.DeleteManySessionsByUserEmail(email)
 
-		return nil
+		return err
 	} else {
 		return errors.New("Something is wrong")
 	}

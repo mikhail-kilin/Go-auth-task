@@ -12,6 +12,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readconcern"
+	"go.mongodb.org/mongo-driver/mongo/writeconcern"
+
 	"time"
 )
 
@@ -95,16 +99,51 @@ func (userService UserService) ReGenerateToken(accessToken string) (Tokens, erro
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		sessionId := claims["session_id"].(string)
 		refreshService := RefreshService{}
+		tokens := Tokens{}
 
-		refreshService.DeleteSession(sessionId)
+		errt := db.GetConnection().Client.UseSession(context.Background(), func(sctx mongo.SessionContext) (error) {
+			err := sctx.StartTransaction(options.Transaction().
+				SetReadConcern(readconcern.Snapshot()).
+				SetWriteConcern(writeconcern.New(writeconcern.WMajority())),
+			)
+			if err != nil {
+				return err
+			}
 
-		email := claims["email"].(string)
-		user, err := userService.FindUser(&entity.User {Email: email})
-		if err != nil {
-			return Tokens{}, err
+			errs := refreshService.DeleteSession(sessionId)
+			if errs != nil {
+				sctx.AbortTransaction(sctx)
+				return err
+			}
+
+			email := claims["email"].(string)
+			user, err := userService.FindUser(&entity.User {Email: email})
+			if err != nil {
+				sctx.AbortTransaction(sctx)
+				return err
+			}
+
+			tokens, err = userService.GetTokens(user)
+			if err != nil {
+				sctx.AbortTransaction(sctx)
+				return err
+			}
+
+			err = sctx.CommitTransaction(sctx)
+
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
+
+		if errt != nil {
+			return Tokens{}, errt
 		}
 
-		return userService.GetTokens(user)
+		return tokens, nil
+
 	} else {
 		return Tokens{}, errors.New("Something is wrong")
 	}
