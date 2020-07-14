@@ -9,6 +9,6 @@ import (
 func main() {
 	router := routes.InitRoute()
 	port := helpers.EnvVar("SERVER_PORT")
-	fmt.Println(port)
-	router.Run(port)
+	fmt.Println(PORT)
+	router.Run(PORT)
 }

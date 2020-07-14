@@ -1,1 +1,1 @@
-go run main.go
+web: bin/auth-task
