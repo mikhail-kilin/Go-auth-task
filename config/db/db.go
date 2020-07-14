@@ -24,7 +24,7 @@ var mongoConnection *MgClient = nil
 func GetConnection() *MgClient {
 	ctx := context.Background()
 	if mongoConnection == nil {
-		client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://" + helpers.EnvVar("DB_CONNECTION_STRING")))
+		client, err := mongo.NewClient(options.Client().ApplyURI(helpers.EnvVar("MONGODB_URI")))
 		if err != nil {
 			log.Fatal(err)
 		}
